@@ -5,8 +5,7 @@
       <div class="flex flex-row items-center justify-between p-4">
         <a href="#" class="text-lg font-semibold tracking-widest text-gray-900 uppercase rounded-lg dark-mode:text-white focus:outline-none focus:shadow-outline">Online Download</a>
         
-        
-        
+               
         <button class="rounded-lg md:hidden focus:outline-none focus:shadow-outline" @click="open = !open">
           <svg fill="currentColor" viewBox="0 0 20 20" class="w-6 h-6">
             <path x-show="!open" fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM9 15a1 1 0 011-1h6a1 1 0 110 2h-6a1 1 0 01-1-1z" clip-rule="evenodd"></path>
@@ -15,18 +14,34 @@
         </button>
       </div>
       
-      <nav :class="{'flex': open, 'hidden': !open}" class="flex-col flex-grow hidden pb-4 md:pb-0 md:flex md:justify-end md:flex-row">
-    <div x-data="{ openSearch: false }" class="md:flex md:items-center md:justify-end">
+    <nav :class="{'flex': open, 'hidden': !open}" class="flex-col flex-grow hidden pb-4 md:pb-0 md:flex md:justify-end md:flex-row">
+        <div x-data="{ openSearch: false, results: [] }" class="md:flex md:items-center md:justify-end">
             <!-- Search field for desktop -->
-            <div class=" md:block">
-                <input type="text" class="p-2 border rounded" placeholder="Search...">
+            <div class="md:block">
+                <input x-model="keyword" @input="search" type="text" class="p-2 border rounded" placeholder="Search...">
             </div>
-        </div>
+            <!-- Search field for mobile -->
+            <div x-show="openSearch" @click.away="openSearch = false" class="md:hidden">
+                <input x-model="keyword" @input="search" type="text" class="p-2 border rounded" placeholder="Search...">
+            </div>
 
+            <!-- Display results in a container -->
+            <template x-if="results.length > 0">
+                <div class="border rounded p-4 bg-white">
+                    <h4 class="text-lg font-semibold mb-2">Search Results:</h4>
+                    <ul>
+                        <li x-for="result in results" :key="result.id" class="text-slate-800 hover:bg-slate-50 p-2">
+                            {{ result.name }}
+                        </li>
+                    </ul>
+                </div>
+            </template>
+
+        </div>
 
         <ul class="flex flex-wrap items-center font-medium text-sm">
                 <?php foreach ($mainNav as $mainNav): ?>
-                    <li class="p-4 lg:px-8 relative flex items-center space-x-1" x-data="{ open: false }"
+                <li class="p-4 lg:px-8 relative flex items-center space-x-1" x-data="{ open: false }"
                     @mouseenter="open = true" @mouseleave="open = false">
                     <a class="text-slate-800 hover:text-slate-900" href="#0" :aria-expanded="open"><?php echo $mainNav["nav_title"]; ?></a>
                     <button class="shrink-0 p-1" :aria-expanded="open" @click.prevent="open = !open">
@@ -46,20 +61,67 @@
                             <?php foreach ($mainNav["subnav"] as $subnavItem): ?>
                                 <li>
                                 <a class="text-slate-800 hover:bg-slate-50 flex items-center p-2" href="<?php echo base_url('Welcome/product/') . urlencode(str_replace(' ', '-', $subnavItem["subnav_title"])); ?>">
-                                        <div class="flex items-center justify-center bg-white border border-slate-200 rounded shadow-sm h-7 w-7 shrink-0 mr-3">
-                                            <svg class="fill-indigo-500" xmlns="http://www.w3.org/2000/svg" width="12" height="12">
-                                                <!-- Add your SVG path here -->
-                                            </svg>
-                                        </div>
-                                        <span class="whitespace-nowrap"><?php echo $subnavItem["subnav_title"]; ?></span>
-                                    </a>
+                                    <div class="flex items-center justify-center bg-white border border-slate-200 rounded shadow-sm h-7 w-7 shrink-0 mr-3">
+                                        <svg class="fill-indigo-500" xmlns="http://www.w3.org/2000/svg" width="12" height="12">
+                                            <!-- Add your SVG path here -->
+                                        </svg>
+                                    </div>
+                                    <span class="whitespace-nowrap"><?php echo $subnavItem["subnav_title"]; ?></span>
+                                </a>
                                 </li>
                             <?php endforeach; ?>
-                        </ul>
-                    </li>
+                    </ul>
+                </li>
                 <?php endforeach; ?>
-            </ul>
-        </nav>
-        </div>
-    </div>
-    </div>
+        </ul>
+    </nav>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+    <script>
+        $(document).ready(function () {
+            // Attach an event listener to the keyup event on the search input field
+            $('#searchKeyword').on('keyup', function () {
+                // Call the search function on every keyup event
+                search();
+            });
+        });
+
+        function search() {
+            var keyword = $('#searchKeyword').val();
+
+            // Use AJAX to send the search keyword to the backend
+            $.ajax({
+                type: 'GET',
+                url: '<?php echo base_url('Welcome/search'); ?>',
+                data: { keyword: keyword },
+                success: function (data) {
+                    displayResults(data);
+                }
+            });
+
+            // If the keyword is empty, remove the search results
+            if (keyword === '') {
+                $('#searchResults').empty();
+            }
+        }
+
+        function displayResults(results) {
+            var resultsDiv = $('#searchResults');
+            resultsDiv.empty();
+
+            if (results.length > 0) {
+                resultsDiv.append('<h2>Search Results:</h2>');
+
+                for (var i = 0; i < results.length; i++) {
+                    resultsDiv.append('<p>' + results[i].name + '</p>');
+                }
+            } else {
+                resultsDiv.append('<p>No results found.</p>');
+            }
+        }
+    </script>

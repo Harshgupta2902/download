@@ -126,4 +126,5 @@ class GetQuery extends CI_Model {
     }
     
     
+    
 }

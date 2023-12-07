@@ -61,6 +61,16 @@ class Welcome extends CI_Controller {
 			
         }
     }
+	public function search() {
+        // Your logic to fetch results from the database goes here
+        // For demonstration purposes, I'll simulate some results
+        $keyword = $this->input->get('keyword');
+        $results = $this->db->like('name', $keyword)->get('software')->result_array();
+
+        // Send JSON response to the AJAX request
+        header('Content-Type: application/json');
+        echo json_encode($results);
+    }
 	
 	
 
